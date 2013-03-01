@@ -1,0 +1,22 @@
+List of files in the directory and their usage:
+-----------------------------------------------
+
+tp1.php : The page which has the actual elements where user movements have to be tracked.
+All that is added and contains the functionality is the script tag with path to collector.js.
+I could have come up with a better name :)
+
+collector.js: The javascript file which has the url to mooculus.php and can be hosted in our server.
+It contains functions for hover for mouse actions on a particular element and blur for keyboard events to text fields.
+It then posts these tracking events to the couchdb database after building the data structure.
+// TODO: Code cleaning. As of now badly written
+
+mooculus.php: It contains the calls to insert and interact with the couchdb database. CouchDB was running on port 5894
+while the webserver which hosted the file was on port 80. I think it should work for any setup.
+// TODO: Code cleaning.
+
+
+It is still a very simple implementation with minimal changes to the original page to be tracked. Only a path to
+the collector.js file has to be added.
+
+NOTE: Things like id and other fields are to be resolved. Can be done later.
+As of now code is working fine.
