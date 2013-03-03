@@ -10,13 +10,24 @@ if(isset($_POST['eventtype'])){
   $id = $_POST['id'];
 }
 
+$couch = new CouchDBCon($options); 
+
 $secretkey = "moomoo";
 $date = date_create();
-//echo date_timestamp_get($date) . "<br>" ;
+
+list($usec, $sec) = explode(" ",microtime());
+$timestamp = (int)(($usec*1000) + ($sec*1000));
+echo $timestamp . "<br>";
 $db = "/mooculus";
-$docid = md5($secretkey . $id . $secretkey . date_timestamp_get($date));
+$docid = md5($secretkey . $id . $secretkey . "$timestamp");
 $url = $db . "/" . $docid;
 
+if(isset($_POST['refresh'])){
+  echo "<br>Deleting database<br>";
+  $resp = $couch->deletedb($db);
+  echo $resp . "<br>";
+  exit();
+}
 
 if($eventtypevar == "mouse")
 {
@@ -51,24 +62,35 @@ elseif($eventtypevar == "keyboard")
 
 //$arr = array('_id' => "$docid" , 'id'=>$id , 'eventtype'=> $eventtypevar , 'start' => $startvar , 'end' => $endvar);
 
-$couch = new CouchDBCon($options); 
+
 
 // See if we can make a connection
 //$resp = $couch->send("GET", "/");
 //var_dump($resp); // response: string(46) "{"couchdb": "Welcome", "version": "0.7.0a553"}"
 
 // Get a list of all databases in CouchDb 
-$resp = $couch->send("GET", "/_all_dbs"); 
-echo $resp ."<br>";
+//$resp = $couch->send("GET", "/_all_dbs"); 
+//echo $resp ."<br>";
 
-//$resp = $couch->createdb($db);
-//echo $resp . "<br>";
+
+
+$resp = $couch->createdb($db);
+//echo $obj['error'];
+if($resp == false)
+{
+  echo"Cannot create database <br>";
+  exit();
+}
+
+;
+
  //var_dump($resp); // string(17) "["test_suite_db"]" 
 
  // Create a new database "test"
- /*$resp = $couch->send("PUT", "/test"); 
- var_dump($resp); // string(12) "{"ok":true}" 
- 
+//$resp = $couch->send("PUT", "/test");
+//echo $resp . "<br>"; // string(12) "{"ok":true}" 
+
+ /*
  // Get all documents in that database
  $resp = $couch->send("GET", "/test/_all_docs"); 
  var_dump($resp); // string(27) "{"total_rows":0,"rows":[]}" 
@@ -78,12 +100,17 @@ echo $resp ."<br>";
  //$resp = $couch->send("PUT", "/test/123", '{"_id":"123","data":"Foo"}'); 
  //var_dump($resp); // string(42) "{"ok":true,"id":"123","rev":"2039697587"}" 
 
- $resp = $couch->createDocument($url , $arr);
-  echo $resp . "<br>";
+$resp = $couch->createDocument($url , $arr);
+if($resp == false)
+{
+  echo"Cannot create document <br>";
+  exit();
+}
+echo $resp . "<br>";
 
  // Get all documents in test again, seing doc 123 there
- $resp = $couch->getallDocs($db);
- echo $resp . "<br>";
+ //$resp = $couch->getallDocs($db);
+ //echo $resp . "<br>";
  //var_dump($resp); // string(91) "{"total_rows":1,"offset":0,"rows":[{"id":"123","key":"123","value":{"rev":"2039697587"}}]}" 
  //$resp = $couch->deletedb($db);
  //var_dump($resp);
@@ -139,9 +166,21 @@ echo $resp ."<br>";
       return $resp;
    }
 
+
    function createdb($url){
       $resp = $this->send("PUT", $url);
-      return $resp;
+      $obj = json_decode($resp , true);
+      if($obj['error']= "file_exists")
+      {
+        return true;
+      }
+      if($obj['ok'])
+      {
+        return true;
+      }
+      else
+        return false;
+
    }
 
    function getallDocs($url){
@@ -153,6 +192,13 @@ echo $resp ."<br>";
    {
       
       $resp = $this->send("PUT", $url , json_encode($arr));
+      $obj = json_decode($resp , true);
+      if($obj['error'] == "conflict" and $obj['reason'] == "Document update conflict.")
+      {
+        echo "Please wait for a millisecond :) . You are too fast<br>";
+        return false;
+      }
+
       return $resp;
    }
 

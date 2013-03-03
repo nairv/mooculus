@@ -29,8 +29,9 @@ $id = "123";
 </HEAD>
 
 <BODY>
-<p> Test IP : <?php echo $ip ?> </p>
 
+<p> Test IP : <?php echo $ip ?> </p>
+<button id="refresh" value="Refresh DB" >Refresh DB</button>
 <h2 id="status2">
 0, 0
 </h2>

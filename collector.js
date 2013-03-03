@@ -1,10 +1,26 @@
 $(document).ready(function(){
-   var url = "http://localhost:80/mooculus.php";
+   var url = "http://localhost:80/mooculus/mooculus.php";
    var startcoord;
    var endcoord;
    var testboxval;
    
    console.log("In collector");
+
+   $("#refresh").click(
+    function(){
+      var a={};
+      a['refresh'] = "refresh";
+        $.ajax(
+        {
+          type: "POST",
+          url: url,
+          //contentType: "application/json",
+          data: a
+        }
+        ).done(function(eventtype){
+          $("#msg").html(eventtype + "Database deleted");
+        });   
+    });
 
    $("#hover").hover(
     function(e){
